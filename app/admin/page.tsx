@@ -15,8 +15,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     .select('user_id,business_name,business_type,city,address,tax_number,verification_status,created_at')
     .in('verification_status', ['pending', 'under_review']).order('created_at', { ascending: true });
   const sellerIds = (sellers ?? []).map((seller) => seller.user_id);
-  const { data: docs } = sellerIds.length ? await admin.from('verification_documents')
-    .select('id,seller_id,document_type,storage_path,review_status,created_at').in('seller_id', sellerIds).order('created_at', { ascending: false }) : { data: [] as any[] };
+  const docsResult = sellerIds.length
+    ? await admin.from('verification_documents')
+      .select('id,seller_id,document_type,storage_path,review_status,created_at').in('seller_id', sellerIds).order('created_at', { ascending: false })
+    : null;
+  const docs = docsResult?.data ?? [];
   const docsWithLinks = await Promise.all((docs ?? []).map(async (doc) => {
     const { data } = await admin.storage.from('seller-verification').createSignedUrl(doc.storage_path, 60);
     return { ...doc, signedUrl: data?.signedUrl ?? null };
