@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { signOutAction } from '@/app/auth/actions';
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -16,6 +17,7 @@ export default async function DashboardPage() {
     <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: 24 }}>
       <span className="eyebrow">صارف ڈیش بورڈ</span><h1 style={{ fontSize: 28 }}>السلام علیکم، {profile.full_name || 'صارف'}!</h1>
       <p style={{ color: 'var(--muted)' }}>اکاؤنٹ: {profile.role === 'seller' ? 'سیلر' : profile.role === 'admin' ? 'ایڈمن' : 'بائر'} · شہر: {profile.city || 'درج نہیں'}</p>
+      {error && <p role="alert" style={{ background: '#fff0ed', color: '#9a3020', padding: 12, borderRadius: 8 }}>{error}</p>}
       {profile.role === 'seller' && <div style={{ padding: 16, background: '#f3f8f4', borderRadius: 12, margin: '18px 0' }}><b>{seller?.business_name || 'کاروباری پروفائل'}</b><p>ویریفکیشن اسٹیٹس: <strong>{seller?.verification_status || 'زیرِ التوا'}</strong></p><p style={{ color: 'var(--muted)', lineHeight: 1.8 }}>منظوری سے پہلے مصنوعات عوامی کیٹلاگ میں نظر نہیں آئیں گی۔ ایڈمن ضرورت کے مطابق مزید دستاویزات مانگ سکتا ہے۔</p><Link className="primary" href="/seller/documents">ویریفکیشن دستاویزات جمع کریں</Link></div>}
       {profile.role === 'admin' && <p><Link className="primary" href="/admin">ایڈمن ویریفکیشن پینل کھولیں</Link></p>}
       {profile.role === 'buyer' && <p><Link className="primary" href="/">ہول سیل مصنوعات دیکھیں</Link></p>}
